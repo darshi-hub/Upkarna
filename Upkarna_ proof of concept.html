@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Upkarna: proof of concept</title>
+<style>
+:root{--bg:#FFF8F0;--card:#FFFFFF;--ink:#14121F;--mute:#5E5A70;--line:#E7DFF5;--acc:#FF5A4D;--v:#6C4DFF;--mint:#16C79A;--sun:#FFC93C;--shadow:0 10px 30px rgba(108,77,255,.12);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14121F;--card:#1F1B33;--ink:#F6F2FF;--mute:#B7B0D0;--line:#352F55;--shadow:0 10px 30px rgba(0,0,0,.4);color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14121F;--card:#1F1B33;--ink:#F6F2FF;--mute:#B7B0D0;--line:#352F55;--shadow:0 10px 30px rgba(0,0,0,.4);color-scheme:dark}
+*{box-sizing:border-box}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:"Trebuchet MS",Verdana,Arial,sans-serif;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:26px;margin:4px 0 2px}
+.sub{color:var(--mute);margin:0 0 16px;font-size:14px}
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tab{border:2px solid var(--line);background:var(--card);color:var(--ink);padding:10px 16px;border-radius:999px;font-weight:700;cursor:pointer;font-size:14px}
+.tab[aria-selected="true"]{background:var(--v);border-color:var(--v);color:#fff}
+.grid{display:grid;grid-template-columns:minmax(260px,330px) 1fr;gap:20px;align-items:start}
+@media (max-width:720px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:16px;box-shadow:var(--shadow)}
+.card h2{font-size:16px;margin:0 0 10px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.btn{border:0;border-radius:14px;padding:10px 12px;font-weight:700;cursor:pointer;color:#fff;font-size:13px}
+.b1{background:var(--acc)}.b2{background:var(--v)}.b3{background:var(--mint);color:#0b2a22}.b4{background:var(--sun);color:#3a2a00}.b5{background:var(--ink);color:var(--bg)}
+.hint{font-size:13px;color:var(--mute);margin:10px 0 0;line-height:1.5}
+.status{margin-top:12px;font-weight:700;font-size:14px;min-height:20px}
+.swatches{display:flex;gap:8px;margin:8px 0 12px}
+.sw{width:30px;height:30px;border-radius:50%;border:3px solid var(--line);cursor:pointer}
+.sw[aria-pressed="true"]{border-color:var(--ink)}
+label{display:block;font-size:13px;font-weight:700;margin:12px 0 4px}
+input[type=range]{width:100%}
+select{width:100%;padding:8px;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--ink)}
+.phone{width:240px;height:480px;margin:0 auto;border-radius:36px;border:5px solid #2b2b33;position:relative;overflow:hidden;background:#EEF2F6}
+.phone.os{background:linear-gradient(160deg,var(--v),var(--acc))}
+.led{position:absolute;width:5px;height:5px;border-radius:50%;background:#2a2a33;transition:background .15s,box-shadow .15s}
+.led.on{background:var(--c,#6C8CFF);box-shadow:0 0 8px var(--c,#6C8CFF)}
+.part{position:absolute;border-radius:8px}
+.lamp{position:absolute;left:90px;top:230px;width:60px;height:60px;border-radius:50%;border:2px solid var(--acc);background:#FFE9B0;opacity:.35;transition:opacity .2s,box-shadow .2s}
+.lamp.on{opacity:1;box-shadow:0 0 40px 14px rgba(255,214,120,.8)}
+.os-top{position:absolute;top:34px;left:0;right:0;text-align:center;color:#fff}
+.clock{font-size:44px;font-weight:700;letter-spacing:1px}
+.date{font-size:12px;opacity:.85}
+.icons{position:absolute;left:14px;right:14px;top:130px;display:grid;gap:12px}
+.ico{aspect-ratio:1;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--ink);color:#14121F}
+.dock{position:absolute;left:18px;right:18px;bottom:18px;height:54px;border-radius:20px;background:rgba(255,255,255,.28)}
+.note{font-size:12px;color:var(--mute);margin-top:18px;line-height:1.5}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Upkarna: proof of concept</h1>
+  <p class="sub">A working simulation of two ideas in the plan: the Transparent Edition’s lighting suite, and the UpkarnaOS customisation engine. This is software only; no hardware has been built yet.</p>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="t1" aria-selected="true" aria-controls="p1">Transparent Edition lights</button>
+    <button class="tab" role="tab" id="t2" aria-selected="false" aria-controls="p2">UpkarnaOS customiser</button>
+  </div>
+
+  <section id="p1" class="grid" role="tabpanel" aria-labelledby="t1">
+    <div class="card">
+      <div class="phone" id="back" aria-label="Back of the Transparent Edition">
+        <div class="part" id="board" style="left:16px;top:16px;width:208px;height:110px;background:#9FB4FF"></div>
+        <div class="part" style="left:130px;top:24px;width:84px;height:84px;background:#14121F"></div>
+        <div class="part" style="left:30px;top:44px;width:36px;height:36px;background:#5B6BA8"></div>
+        <div class="part" id="batt" style="left:22px;top:150px;width:196px;height:290px;background:#C9CDD2"></div>
+        <div class="lamp" id="lamp"></div>
+        <div id="leds"></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h2>Pick the internal colour (chosen at purchase)</h2>
+        <div class="swatches" id="sws"></div>
+        <h2>Light patterns</h2>
+        <div class="btns">
+          <button class="btn b1" data-p="notify">Message alert</button>
+          <button class="btn b2" data-p="charge">Charging progress</button>
+          <button class="btn b3" data-p="music">Music beat</button>
+          <button class="btn b4" data-p="count">Camera countdown</button>
+          <button class="btn b5" data-p="sound">Sound to light (accessibility)</button>
+          <button class="btn b5" data-p="lamp">Core Lamp</button>
+          <button class="btn b5" data-p="off">Off</button>
+        </div>
+        <div class="status" id="status" role="status" aria-live="polite">Choose a pattern.</div>
+        <p class="hint">“Sound to light” turns a doorbell or alarm into a distinct light pattern, so people who are deaf or hard of hearing can notice it. Census 2011 counts about 19% of India’s 2.68 crore people with disabilities as having a hearing disability.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="p2" class="grid hide" role="tabpanel" aria-labelledby="t2">
+    <div class="card">
+      <div class="phone os" id="os">
+        <div class="os-top"><div class="clock" id="clock">9:41</div><div class="date">Wednesday, 11 November</div></div>
+        <div class="icons" id="icons"></div>
+        <div class="dock"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Make it yours</h2>
+      <label for="shape">Icon shape</label>
+      <select id="shape"><option value="50%">Circle</option><option value="28%" selected>Rounded square</option><option value="6%">Square</option></select>
+      <label for="cols">Grid density: <span id="colsv">4</span> columns</label>
+      <input id="cols" type="range" min="3" max="6" value="4">
+      <label for="wt">Clock weight</label>
+      <input id="wt" type="range" min="300" max="900" step="200" value="700">
+      <label for="a1">Theme colours</label>
+      <div class="btns">
+        <button class="btn b2" data-th="1">Violet + coral</button>
+        <button class="btn b3" data-th="2">Mint + sun</button>
+        <button class="btn b5" data-th="3">Mono</button>
+      </div>
+      <p class="hint">Everything here is a setting, not a patch: the plan makes lock screen, icons, grid, status bar, gestures and haptics part of the system itself.</p>
+    </div>
+  </section>
+  <p class="note">Proof of concept for the Upkarna submission. Light patterns and settings are simulated in the browser; the Transparent Edition hardware and the native operating system are planned, not built.</p>
+</div>
+<script>
+(function(){
+  var COLORS={Cobalt:{b:"#9FB4FF",c:"#5B7BFF"},Crimson:{b:"#F2A3A8",c:"#FF3B4E"},Graphite:{b:"#B8BCC4",c:"#E9A23B"}};
+  var ledsEl=document.getElementById("leds"),leds=[],ring=[];
+  function addLed(x,y){var d=document.createElement("div");d.className="led";d.style.left=x+"px";d.style.top=y+"px";ledsEl.appendChild(d);return d}
+  // perimeter leds around battery (indices 0..n)
+  var i,n;
+  for(i=0;i<14;i++){ring.push(addLed(30+i*13.5,160))}
+  for(i=0;i<10;i++){ring.push(addLed(212,170+i*26))}
+  for(i=0;i<14;i++){ring.push(addLed(212-i*13.5,426))}
+  for(i=0;i<10;i++){ring.push(addLed(30,426-i*26))}
+  // chip row leds
+  var chip=[];for(i=0;i<8;i++){chip.push(addLed(30+i*22,18+0))}
+  leds=ring.concat(chip);
+  var timer=null,cur="off",status=document.getElementById("status"),lamp=document.getElementById("lamp"),col=COLORS.Cobalt;
+  function setColor(n){col=COLORS[n];document.getElementById("board").style.background=col.b;document.getElementById("back").style.setProperty("--c",col.c);ledsEl.style.setProperty("--c",col.c);ledsEl.querySelectorAll(".led").forEach(function(l){l.style.setProperty("--c",col.c)});
+    document.querySelectorAll(".sw").forEach(function(s){s.setAttribute("aria-pressed",s.dataset.n===n?"true":"false")})}
+  var sws=document.getElementById("sws");
+  Object.keys(COLORS).forEach(function(k){var b=document.createElement("button");b.className="sw";b.dataset.n=k;b.title=k;b.setAttribute("aria-label",k);b.setAttribute("aria-pressed",k==="Cobalt"?"true":"false");b.style.background=COLORS[k].c;b.onclick=function(){setColor(k)};sws.appendChild(b)});
+  setColor("Cobalt");
+  function clear(){if(timer){clearInterval(timer);timer=null}leds.forEach(function(l){l.classList.remove("on")});lamp.classList.remove("on")}
+  function run(p){
+    clear();cur=p;var t=0;
+    if(p==="off"){status.textContent="Lights off.";return}
+    if(p==="lamp"){lamp.classList.add("on");status.textContent="Core Lamp on: lights the interior and the room.";return}
+    if(p==="notify"){status.textContent="Message alert: a soft pulse around the edge.";timer=setInterval(function(){t++;var on=t%2===0;ring.forEach(function(l){l.classList.toggle("on",on)})},500);return}
+    if(p==="charge"){status.textContent="Charging: the bar fills as the battery does.";timer=setInterval(function(){t=(t+1)%(ring.length+6);leds.forEach(function(l){l.classList.remove("on")});for(var k=0;k<Math.min(t,ring.length);k++)ring[k].classList.add("on")},120);return}
+    if(p==="music"){status.textContent="Music beat: lights jump with the bass.";timer=setInterval(function(){chip.concat(ring).forEach(function(l){l.classList.toggle("on",Math.random()<0.45)})},160);return}
+    if(p==="count"){status.textContent="Camera countdown: lights switch off one by one before the shot.";var total=8;var step=0;timer=setInterval(function(){chip.forEach(function(l,k){l.classList.toggle("on",k>=step)});step++;if(step>total){step=0}},400);return}
+    if(p==="sound"){status.textContent="Doorbell detected: a long-short-long light pattern, not just a sound.";var seq=[1,1,1,0,1,0,1,1,1,0,0,0];timer=setInterval(function(){var on=seq[t%seq.length]===1;t++;leds.forEach(function(l){l.classList.toggle("on",on)})},250);return}
+  }
+  document.querySelectorAll("[data-p]").forEach(function(b){b.onclick=function(){run(b.dataset.p)}});
+
+  // tabs
+  var t1=document.getElementById("t1"),t2=document.getElementById("t2"),p1=document.getElementById("p1"),p2=document.getElementById("p2");
+  function tab(a){var one=a===1;t1.setAttribute("aria-selected",one);t2.setAttribute("aria-selected",!one);p1.classList.toggle("hide",!one);p2.classList.toggle("hide",one);if(!one)clear()}
+  t1.onclick=function(){tab(1)};t2.onclick=function(){tab(2)};
+
+  // os customiser
+  var icons=document.getElementById("icons"),names=["Phone","Chat","Maps","Camera","Music","Pay","Notes","Files","Games","Clock","Photos","Web","Mail","Cal","Health","Learn","Tools","Wallet","Read","Draw","Shop","News","Fit","Safe"];
+  var shape=document.getElementById("shape"),cols=document.getElementById("cols"),wt=document.getElementById("wt"),os=document.getElementById("os"),clk=document.getElementById("clock");
+  function draw(){var c=+cols.value;document.getElementById("colsv").textContent=c;icons.style.gridTemplateColumns="repeat("+c+",1fr)";icons.innerHTML="";var count=c*4;for(var k=0;k<count;k++){var d=document.createElement("div");d.className="ico";d.style.borderRadius=shape.value;d.textContent=c<=5?names[k%names.length]:"";icons.appendChild(d)}clk.style.fontWeight=wt.value}
+  shape.onchange=draw;cols.oninput=draw;wt.oninput=draw;draw();
+  var TH={1:"linear-gradient(160deg,#6C4DFF,#FF5A4D)",2:"linear-gradient(160deg,#16C79A,#FFC93C)",3:"linear-gradient(160deg,#2b2b33,#7a7a85)"};
+  document.querySelectorAll("[data-th]").forEach(function(b){b.onclick=function(){os.style.background=TH[b.dataset.th]}});
+})();
+</script>
+</body>
+</html>
